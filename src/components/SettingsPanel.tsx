@@ -18,6 +18,8 @@ export interface MatchSettings {
   boundaryBack: number;
   matchSituation: string;
   oversRemaining: string;
+  favouriteShots: string;
+  worstShots: string;
 }
 
 interface SettingsPanelProps {
