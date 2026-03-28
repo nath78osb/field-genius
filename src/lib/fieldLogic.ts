@@ -10,7 +10,7 @@ Match Conditions:
 - Pitch: ${settings.pitchCondition}
 - Boundary dimensions: Leg side ${settings.boundaryLeg}m, Off side ${settings.boundaryOff}m, Straight ${settings.boundaryStraight}m, Behind ${settings.boundaryBack}m
 - Match situation: ${settings.matchSituation}
-- Format: ${settings.oversRemaining}
+- Format: ${settings.oversRemaining}${settings.favouriteShots ? `\n- Batter's favourite shots: ${settings.favouriteShots}` : ""}${settings.worstShots ? `\n- Batter's weakest shots: ${settings.worstShots}` : ""}
 
 Return a JSON array of exactly 11 fielder objects. Each object must have:
 - "name": the fielding position name (e.g. "Slip", "Mid-off", "Fine Leg")
