@@ -15,6 +15,10 @@ const defaultSettings: MatchSettings = {
   bowlerPace: "fast",
   pitchCondition: "green",
   groundSize: 70,
+  boundaryLeft: 65,
+  boundaryRight: 65,
+  boundaryStraight: 75,
+  boundaryBack: 60,
   matchSituation: "attacking",
   oversRemaining: "test",
 };

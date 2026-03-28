@@ -129,18 +129,29 @@ const SettingsPanel = ({ settings, onChange, onGenerate, isLoading }: SettingsPa
           </Select>
         </div>
 
-        <div className="space-y-3">
+        <div className="col-span-2 space-y-3">
           <Label className="text-muted-foreground text-xs font-mono uppercase tracking-wider">
-            Ground Size: {settings.groundSize}m
+            Boundary Dimensions (metres)
           </Label>
-          <Slider
-            value={[settings.groundSize]}
-            onValueChange={([v]) => update("groundSize", v)}
-            min={55}
-            max={90}
-            step={5}
-            className="mt-2"
-          />
+          <div className="grid grid-cols-2 gap-3">
+            {([
+              ["boundaryLeft", "Left"],
+              ["boundaryRight", "Right"],
+              ["boundaryStraight", "Straight"],
+              ["boundaryBack", "Behind"],
+            ] as const).map(([key, label]) => (
+              <div key={key} className="space-y-1">
+                <span className="text-xs text-muted-foreground font-mono">{label}: {settings[key]}m</span>
+                <Slider
+                  value={[settings[key]]}
+                  onValueChange={([v]) => update(key, v)}
+                  min={50}
+                  max={95}
+                  step={1}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
