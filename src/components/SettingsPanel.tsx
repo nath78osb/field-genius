@@ -135,8 +135,8 @@ const SettingsPanel = ({ settings, onChange, onGenerate, isLoading }: SettingsPa
           </Label>
           <div className="grid grid-cols-2 gap-3">
             {([
-              ["boundaryLeft", "Left"],
-              ["boundaryRight", "Right"],
+              ["boundaryLeg", "Leg Side"],
+              ["boundaryOff", "Off Side"],
               ["boundaryStraight", "Straight"],
               ["boundaryBack", "Behind"],
             ] as const).map(([key, label]) => (
