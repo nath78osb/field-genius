@@ -8,7 +8,7 @@ Match Conditions:
 - Batter: ${settings.batterHand}-handed, ${settings.batterType} style
 - Bowler: ${settings.bowlerArm}-arm ${settings.bowlerType}
 - Pitch: ${settings.pitchCondition}
-- Ground size: ${settings.groundSize}m boundary
+- Boundary dimensions: Left ${settings.boundaryLeft}m, Right ${settings.boundaryRight}m, Straight ${settings.boundaryStraight}m, Behind ${settings.boundaryBack}m
 - Match situation: ${settings.matchSituation}
 - Format: ${settings.oversRemaining}
 
