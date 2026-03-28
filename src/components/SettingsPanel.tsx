@@ -12,8 +12,8 @@ export interface MatchSettings {
   bowlerPace: string;
   pitchCondition: string;
   groundSize: number;
-  boundaryLeft: number;
-  boundaryRight: number;
+  boundaryLeg: number;
+  boundaryOff: number;
   boundaryStraight: number;
   boundaryBack: number;
   matchSituation: string;
