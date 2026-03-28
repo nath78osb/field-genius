@@ -157,6 +157,28 @@ const SettingsPanel = ({ settings, onChange, onGenerate, isLoading }: SettingsPa
         </div>
       </div>
 
+      <div className="space-y-2">
+        <Label className="text-muted-foreground text-xs font-mono uppercase tracking-wider">Favourite Shots (optional)</Label>
+        <input
+          type="text"
+          value={settings.favouriteShots}
+          onChange={(e) => update("favouriteShots", e.target.value)}
+          placeholder="e.g. Cover drive, Pull, Sweep"
+          className="flex h-10 w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-muted-foreground text-xs font-mono uppercase tracking-wider">Worst Shots (optional)</Label>
+        <input
+          type="text"
+          value={settings.worstShots}
+          onChange={(e) => update("worstShots", e.target.value)}
+          placeholder="e.g. Short ball, Outswinger"
+          className="flex h-10 w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        />
+      </div>
+
       <Button
         onClick={onGenerate}
         disabled={isLoading}

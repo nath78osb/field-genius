@@ -21,6 +21,8 @@ const defaultSettings: MatchSettings = {
   boundaryBack: 60,
   matchSituation: "attacking",
   oversRemaining: "test",
+  favouriteShots: "",
+  worstShots: "",
 };
 
 const Index = () => {
