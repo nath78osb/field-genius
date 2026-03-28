@@ -12,8 +12,8 @@ export interface MatchSettings {
   bowlerPace: string;
   pitchCondition: string;
   groundSize: number;
-  boundaryLeft: number;
-  boundaryRight: number;
+  boundaryLeg: number;
+  boundaryOff: number;
   boundaryStraight: number;
   boundaryBack: number;
   matchSituation: string;
@@ -135,8 +135,8 @@ const SettingsPanel = ({ settings, onChange, onGenerate, isLoading }: SettingsPa
           </Label>
           <div className="grid grid-cols-2 gap-3">
             {([
-              ["boundaryLeft", "Left"],
-              ["boundaryRight", "Right"],
+              ["boundaryLeg", "Leg Side"],
+              ["boundaryOff", "Off Side"],
               ["boundaryStraight", "Straight"],
               ["boundaryBack", "Behind"],
             ] as const).map(([key, label]) => (
