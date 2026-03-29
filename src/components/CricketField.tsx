@@ -40,8 +40,10 @@ const CricketField = ({ fielders, isLoading }: CricketFieldProps) => {
         <line x1={cx - 14} y1={cy + 28} x2={cx + 14} y2={cy + 28} stroke="hsl(0 0% 100% / 0.6)" strokeWidth="1" />
 
         {/* Direction labels */}
-        <text x={cx} y={30} textAnchor="middle" fill="hsl(210 20% 60%)" fontSize="10" fontFamily="Inter">OFF SIDE</text>
-        <text x={cx} y={480} textAnchor="middle" fill="hsl(210 20% 60%)" fontSize="10" fontFamily="Inter">LEG SIDE</text>
+        <text x={20} y={cy + 4} textAnchor="middle" fill="hsl(210 20% 60%)" fontSize="9" fontFamily="Inter" transform={`rotate(-90, 20, ${cy})`}>OFF SIDE</text>
+        <text x={480} y={cy + 4} textAnchor="middle" fill="hsl(210 20% 60%)" fontSize="9" fontFamily="Inter" transform={`rotate(90, 480, ${cy})`}>LEG SIDE</text>
+        <text x={cx} y={22} textAnchor="middle" fill="hsl(210 20% 60%)" fontSize="9" fontFamily="Inter">BOWLER'S END</text>
+        <text x={cx} y={490} textAnchor="middle" fill="hsl(210 20% 60%)" fontSize="9" fontFamily="Inter">BATSMAN'S END</text>
 
         {/* Fielders */}
         {fielders.map((fielder, i) => {
