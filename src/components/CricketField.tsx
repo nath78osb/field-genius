@@ -1,10 +1,13 @@
 import { motion } from "framer-motion";
 
+export type FielderCategory = "30yd-wall" | "sprinter" | "catcher" | "superfielder" | null;
+
 export interface FielderPosition {
   name: string;
   x: number; // -1 to 1 (center = 0)
   y: number; // -1 to 1 (center = 0)
   label: string;
+  category?: FielderCategory;
 }
 
 interface CricketFieldProps {
