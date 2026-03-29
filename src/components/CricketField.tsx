@@ -55,6 +55,14 @@ const CricketField = ({ fielders, isLoading, batterHand = "right" }: CricketFiel
         {/* Fielders */}
         {fielders.map((fielder, i) => {
           const { svgX, svgY } = toSvg(fielder);
+          const catColors: Record<string, { fill: string; stroke: string; glow: string }> = {
+            "30yd-wall": { fill: "hsl(220 80% 55%)", stroke: "hsl(220 80% 65%)", glow: "hsl(220 80% 55%)" },
+            sprinter: { fill: "hsl(150 70% 45%)", stroke: "hsl(150 70% 55%)", glow: "hsl(150 70% 45%)" },
+            catcher: { fill: "hsl(350 80% 55%)", stroke: "hsl(350 80% 65%)", glow: "hsl(350 80% 55%)" },
+            superfielder: { fill: "hsl(280 70% 55%)", stroke: "hsl(280 70% 65%)", glow: "hsl(280 70% 55%)" },
+          };
+          const colors = fielder.category ? catColors[fielder.category] : { fill: "hsl(38 90% 55%)", stroke: "hsl(38 90% 65%)", glow: "hsl(38 90% 55%)" };
+          const radius = fielder.category ? 8 : 6;
           return (
             <motion.g
               key={fielder.name}
@@ -62,11 +70,14 @@ const CricketField = ({ fielders, isLoading, batterHand = "right" }: CricketFiel
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: i * 0.08, type: "spring", stiffness: 300 }}
             >
-              <circle cx={svgX} cy={svgY} r={10} fill="hsl(38 90% 55%)" opacity={0.3} className="animate-pulse-glow" />
-              <circle cx={svgX} cy={svgY} r={6} fill="hsl(38 90% 55%)" stroke="hsl(38 90% 65%)" strokeWidth="1.5" />
+              <circle cx={svgX} cy={svgY} r={radius + 4} fill={colors.glow} opacity={0.3} className="animate-pulse-glow" />
+              {fielder.category && (
+                <circle cx={svgX} cy={svgY} r={radius + 2} fill="none" stroke={colors.stroke} strokeWidth="1" strokeDasharray="3 2" opacity={0.6} />
+              )}
+              <circle cx={svgX} cy={svgY} r={radius} fill={colors.fill} stroke={colors.stroke} strokeWidth="1.5" />
               <text
                 x={svgX}
-                y={svgY - 12}
+                y={svgY - radius - 5}
                 textAnchor="middle"
                 fill="hsl(0 0% 100%)"
                 fontSize="7"
@@ -75,6 +86,20 @@ const CricketField = ({ fielders, isLoading, batterHand = "right" }: CricketFiel
               >
                 {fielder.label}
               </text>
+              {fielder.category && (
+                <text
+                  x={svgX}
+                  y={svgY + radius + 10}
+                  textAnchor="middle"
+                  fill={colors.fill}
+                  fontSize="5.5"
+                  fontFamily="JetBrains Mono"
+                  fontWeight="600"
+                  opacity={0.9}
+                >
+                  {fielder.category === "30yd-wall" ? "WALL" : fielder.category === "superfielder" ? "SUPER" : fielder.category.toUpperCase()}
+                </text>
+              )}
             </motion.g>
           );
         })}

@@ -59,11 +59,13 @@ export function parseFieldResponse(text: string): { fielders: FielderPosition[];
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
       if (parsed.fielders && Array.isArray(parsed.fielders)) {
+        const validCategories = ["30yd-wall", "sprinter", "catcher", "superfielder"];
         const fielders = parsed.fielders.map((f: any) => ({
           name: f.name || "Unknown",
           label: f.label || "?",
           x: Math.max(-0.85, Math.min(0.85, Number(f.x) || 0)),
           y: Math.max(-0.85, Math.min(0.85, Number(f.y) || 0)),
+          category: (f.category && validCategories.includes(f.category) ? f.category : null) as FielderCategory,
         }));
         const tactics: BowlingTactics | null = parsed.tactics ? {
           mainBall: parsed.tactics.mainBall || "",
