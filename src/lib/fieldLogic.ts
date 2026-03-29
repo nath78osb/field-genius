@@ -1,5 +1,5 @@
 import { MatchSettings } from "@/components/SettingsPanel";
-import { FielderPosition } from "@/components/CricketField";
+import { FielderPosition, FielderCategory } from "@/components/CricketField";
 
 export function generateFieldPrompt(settings: MatchSettings): string {
   return `You are an expert cricket fielding coach and bowling strategist. Based on these match conditions, suggest the optimal field placement AND bowling tactics.
@@ -17,12 +17,21 @@ COORDINATE SYSTEM (IMPORTANT):
 - y-axis: NEGATIVE = BEHIND the batsman (keeper end, bottom of screen), POSITIVE = IN FRONT (bowler end, top of screen)
 - So for a right-hander: slips/gully are at negative x and negative y, cover/mid-off at negative x and positive y, mid-on/mid-wicket at positive x and positive y, fine leg at positive x and negative y.
 
+SPECIAL FIELDER CATEGORIES:
+Assign one of these categories to the most appropriate fielders (not all fielders need a category):
+- "30yd-wall": Your best infielder — placed where most grounded shots are expected, within the 30-yard circle.
+- "sprinter": The fastest runner — placed in the outfield where the batter tends to hit and run singles/doubles.
+- "catcher": The best catcher — placed where the batter hits the most boundaries, to take catches.
+- "superfielder": A combination of sprinter and catcher — use ONLY if both roles coincide at the same position.
+Typically assign 2-4 of these categories across the 11 fielders.
+
 Return a JSON object with two keys:
 1. "fielders": array of exactly 11 objects, each with:
    - "name": fielding position name (e.g. "Slip", "Mid-off", "Fine Leg")
    - "label": short 2-4 char abbreviation (e.g. "SL", "MO", "FL")
    - "x": number from -0.85 to 0.85 (negative = off side, positive = leg side for right-hander; REVERSED for left-hander)
    - "y": number from -0.85 to 0.85 (negative = behind batsman, positive = in front)
+   - "category": one of "30yd-wall", "sprinter", "catcher", "superfielder", or null if no special role
    - "reason": one sentence explaining placement
 
 2. "tactics": object with:
@@ -50,11 +59,13 @@ export function parseFieldResponse(text: string): { fielders: FielderPosition[];
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
       if (parsed.fielders && Array.isArray(parsed.fielders)) {
+        const validCategories = ["30yd-wall", "sprinter", "catcher", "superfielder"];
         const fielders = parsed.fielders.map((f: any) => ({
           name: f.name || "Unknown",
           label: f.label || "?",
           x: Math.max(-0.85, Math.min(0.85, Number(f.x) || 0)),
           y: Math.max(-0.85, Math.min(0.85, Number(f.y) || 0)),
+          category: (f.category && validCategories.includes(f.category) ? f.category : null) as FielderCategory,
         }));
         const tactics: BowlingTactics | null = parsed.tactics ? {
           mainBall: parsed.tactics.mainBall || "",

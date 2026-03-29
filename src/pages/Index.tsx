@@ -129,15 +129,27 @@ const Index = () => {
                 transition={{ delay: 0.5 }}
                 className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-2"
               >
-                {fielders.map((f) => (
-                  <div
-                    key={f.name}
-                    className="flex items-center gap-2 text-xs font-mono bg-card/50 rounded-md px-3 py-1.5 border border-border/50"
-                  >
-                    <span className="text-accent font-bold">{f.label}</span>
-                    <span className="text-muted-foreground">{f.name}</span>
-                  </div>
-                ))}
+                {fielders.map((f) => {
+                  const catBadge: Record<string, { label: string; color: string }> = {
+                    "30yd-wall": { label: "🧱 Wall", color: "text-blue-400" },
+                    sprinter: { label: "🏃 Sprint", color: "text-green-400" },
+                    catcher: { label: "🧤 Catch", color: "text-red-400" },
+                    superfielder: { label: "⭐ Super", color: "text-purple-400" },
+                  };
+                  const badge = f.category ? catBadge[f.category] : null;
+                  return (
+                    <div
+                      key={f.name}
+                      className="flex items-center gap-2 text-xs font-mono bg-card/50 rounded-md px-3 py-1.5 border border-border/50"
+                    >
+                      <span className="text-accent font-bold">{f.label}</span>
+                      <span className="text-muted-foreground">{f.name}</span>
+                      {badge && (
+                        <span className={`ml-auto text-[10px] ${badge.color} font-semibold`}>{badge.label}</span>
+                      )}
+                    </div>
+                  );
+                })}
               </motion.div>
             )}
 
