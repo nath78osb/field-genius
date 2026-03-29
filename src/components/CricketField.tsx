@@ -10,9 +10,13 @@ export interface FielderPosition {
 interface CricketFieldProps {
   fielders: FielderPosition[];
   isLoading?: boolean;
+  batterHand?: string;
 }
 
-const CricketField = ({ fielders, isLoading }: CricketFieldProps) => {
+const CricketField = ({ fielders, isLoading, batterHand = "right" }: CricketFieldProps) => {
+  const isLeftHand = batterHand === "left";
+  const offLabel = isLeftHand ? "right" : "left";
+  const legLabel = isLeftHand ? "left" : "right";
   const cx = 250;
   const cy = 250;
   const rx = 220;
