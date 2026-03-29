@@ -55,7 +55,7 @@ const SettingsPanel = ({ settings, onChange, onGenerate, isLoading }: SettingsPa
             <SelectContent>
               <SelectItem value="aggressive">Aggressive</SelectItem>
               <SelectItem value="defensive">Defensive</SelectItem>
-              <SelectItem value="allrounder">All-rounder</SelectItem>
+              <SelectItem value="balanced">Balanced</SelectItem>
               <SelectItem value="tailender">Tail-ender</SelectItem>
             </SelectContent>
           </Select>
