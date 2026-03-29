@@ -4,7 +4,7 @@ import CricketField from "@/components/CricketField";
 import type { FielderPosition } from "@/components/CricketField";
 import SettingsPanel from "@/components/SettingsPanel";
 import type { MatchSettings } from "@/components/SettingsPanel";
-import { getDefaultField, generateFieldPrompt, parseFieldResponse } from "@/lib/fieldLogic";
+import { getDefaultField, generateFieldPrompt, parseFieldResponse, BowlingTactics } from "@/lib/fieldLogic";
 import { toast } from "sonner";
 
 const defaultSettings: MatchSettings = {
@@ -30,10 +30,12 @@ const Index = () => {
   const [fielders, setFielders] = useState<FielderPosition[]>(getDefaultField());
   const [isLoading, setIsLoading] = useState(false);
   const [reasoning, setReasoning] = useState<string | null>(null);
+  const [tactics, setTactics] = useState<BowlingTactics | null>(null);
 
   const handleGenerate = async () => {
     setIsLoading(true);
     setReasoning(null);
+    setTactics(null);
 
     try {
       const prompt = generateFieldPrompt(settings);
@@ -61,21 +63,24 @@ const Index = () => {
       if (!resp.ok) throw new Error("Failed to get AI suggestion");
 
       const data = await resp.json();
-      const positions = parseFieldResponse(data.result);
+      const { fielders: positions, tactics: bowlingTactics } = parseFieldResponse(data.result);
       setFielders(positions);
+      setTactics(bowlingTactics);
 
-      // Extract reasoning if available
-      const reasonMatch = data.result?.match(/reason/i);
-      if (reasonMatch) {
-        try {
-          const parsed = JSON.parse(data.result.match(/\[[\s\S]*\]/)?.[0] || "[]");
-          const reasons = parsed
-            .filter((f: any) => f.reason)
-            .map((f: any) => `${f.name}: ${f.reason}`)
-            .join("\n");
-          if (reasons) setReasoning(reasons);
-        } catch { /* ignore */ }
-      }
+      // Extract reasoning
+      try {
+        const jsonMatch = data.result?.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (parsed.fielders) {
+            const reasons = parsed.fielders
+              .filter((f: any) => f.reason)
+              .map((f: any) => `${f.name}: ${f.reason}`)
+              .join("\n");
+            if (reasons) setReasoning(reasons);
+          }
+        }
+      } catch { /* ignore */ }
 
       toast.success("Field placement generated!");
     } catch (err) {
@@ -149,6 +154,75 @@ const Index = () => {
                 <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-mono leading-relaxed">
                   {reasoning}
                 </pre>
+              </motion.div>
+            )}
+
+            {/* Bowling Tactics */}
+            {tactics && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="mt-4 space-y-4"
+              >
+                {/* Bowling Plan */}
+                <div className="bg-card/50 border border-border/50 rounded-lg p-4">
+                  <h3 className="text-xs font-mono text-accent uppercase tracking-wider mb-2">
+                    🎯 Bowling Plan
+                  </h3>
+                  <p className="text-sm text-foreground leading-relaxed">{tactics.plan}</p>
+                </div>
+
+                {/* Main Ball */}
+                <div className="bg-card/50 border border-accent/30 rounded-lg p-4">
+                  <h3 className="text-xs font-mono text-accent uppercase tracking-wider mb-2">
+                    ⚡ Primary Delivery
+                  </h3>
+                  <p className="text-sm text-foreground font-medium">{tactics.mainBall}</p>
+                </div>
+
+                {/* Variations */}
+                {tactics.variations.length > 0 && (
+                  <div className="bg-card/50 border border-border/50 rounded-lg p-4">
+                    <h3 className="text-xs font-mono text-accent uppercase tracking-wider mb-3">
+                      🔄 Variations
+                    </h3>
+                    <div className="space-y-2">
+                      {tactics.variations.map((v, i) => (
+                        <div key={i} className="flex gap-2 text-sm">
+                          <span className="text-accent font-mono shrink-0">{i + 1}.</span>
+                          <div>
+                            <span className="text-foreground font-medium">{v.ball}</span>
+                            <span className="text-muted-foreground"> — {v.when}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Bluffs & Double Bluffs */}
+                {tactics.bluffs.length > 0 && (
+                  <div className="bg-card/50 border border-primary/30 rounded-lg p-4">
+                    <h3 className="text-xs font-mono text-primary uppercase tracking-wider mb-3">
+                      🃏 Bluffs & Double Bluffs
+                    </h3>
+                    <div className="space-y-3">
+                      {tactics.bluffs.map((b, i) => (
+                        <div key={i} className="text-sm space-y-1">
+                          <div className="flex gap-2">
+                            <span className="text-muted-foreground font-mono shrink-0 text-xs uppercase">Setup:</span>
+                            <span className="text-foreground">{b.setup}</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <span className="text-accent font-mono shrink-0 text-xs uppercase">Execute:</span>
+                            <span className="text-foreground font-medium">{b.execution}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </motion.div>
             )}
           </motion.div>
