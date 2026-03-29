@@ -119,7 +119,7 @@ const Index = () => {
             transition={{ delay: 0.2 }}
             className="order-1"
           >
-            <CricketField fielders={fielders} isLoading={isLoading} />
+            <CricketField fielders={fielders} isLoading={isLoading} batterHand={settings.batterHand} />
 
             {/* Field legend */}
             {fielders.length > 0 && !isLoading && (

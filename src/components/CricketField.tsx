@@ -10,9 +10,13 @@ export interface FielderPosition {
 interface CricketFieldProps {
   fielders: FielderPosition[];
   isLoading?: boolean;
+  batterHand?: string;
 }
 
-const CricketField = ({ fielders, isLoading }: CricketFieldProps) => {
+const CricketField = ({ fielders, isLoading, batterHand = "right" }: CricketFieldProps) => {
+  const isLeftHand = batterHand === "left";
+  const offLabel = isLeftHand ? "right" : "left";
+  const legLabel = isLeftHand ? "left" : "right";
   const cx = 250;
   const cy = 250;
   const rx = 220;
@@ -40,8 +44,8 @@ const CricketField = ({ fielders, isLoading }: CricketFieldProps) => {
         <line x1={cx - 14} y1={cy + 28} x2={cx + 14} y2={cy + 28} stroke="hsl(0 0% 100% / 0.6)" strokeWidth="1" />
 
         {/* Direction labels */}
-        <text x={20} y={cy + 4} textAnchor="middle" fill="hsl(210 20% 60%)" fontSize="9" fontFamily="Inter" transform={`rotate(-90, 20, ${cy})`}>OFF SIDE</text>
-        <text x={480} y={cy + 4} textAnchor="middle" fill="hsl(210 20% 60%)" fontSize="9" fontFamily="Inter" transform={`rotate(90, 480, ${cy})`}>LEG SIDE</text>
+        <text x={20} y={cy + 4} textAnchor="middle" fill="hsl(210 20% 60%)" fontSize="9" fontFamily="Inter" transform={`rotate(-90, 20, ${cy})`}>{isLeftHand ? "LEG SIDE" : "OFF SIDE"}</text>
+        <text x={480} y={cy + 4} textAnchor="middle" fill="hsl(210 20% 60%)" fontSize="9" fontFamily="Inter" transform={`rotate(90, 480, ${cy})`}>{isLeftHand ? "OFF SIDE" : "LEG SIDE"}</text>
         <text x={cx} y={22} textAnchor="middle" fill="hsl(210 20% 60%)" fontSize="9" fontFamily="Inter">BOWLER'S END</text>
         <text x={cx} y={490} textAnchor="middle" fill="hsl(210 20% 60%)" fontSize="9" fontFamily="Inter">BATSMAN'S END</text>
 
