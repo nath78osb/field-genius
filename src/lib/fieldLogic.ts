@@ -1,5 +1,5 @@
 import { MatchSettings } from "@/components/SettingsPanel";
-import { FielderPosition } from "@/components/CricketField";
+import { FielderPosition, FielderCategory } from "@/components/CricketField";
 
 export function generateFieldPrompt(settings: MatchSettings): string {
   return `You are an expert cricket fielding coach and bowling strategist. Based on these match conditions, suggest the optimal field placement AND bowling tactics.
