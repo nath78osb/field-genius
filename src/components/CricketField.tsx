@@ -1,11 +1,13 @@
 import { motion } from "framer-motion";
+import type { BallData } from "@/lib/matchTypes";
+import { SHOT_DIRECTION_ANGLES } from "@/lib/matchTypes";
 
 export type FielderCategory = "30yd-wall" | "sprinter" | "catcher" | "superfielder" | null;
 
 export interface FielderPosition {
   name: string;
-  x: number; // -1 to 1 (center = 0)
-  y: number; // -1 to 1 (center = 0)
+  x: number;
+  y: number;
   label: string;
   category?: FielderCategory;
 }
@@ -14,12 +16,11 @@ interface CricketFieldProps {
   fielders: FielderPosition[];
   isLoading?: boolean;
   batterHand?: string;
+  wagonWheelBalls?: BallData[];
 }
 
-const CricketField = ({ fielders, isLoading, batterHand = "right" }: CricketFieldProps) => {
+const CricketField = ({ fielders, isLoading, batterHand = "right", wagonWheelBalls = [] }: CricketFieldProps) => {
   const isLeftHand = batterHand === "left";
-  const offLabel = isLeftHand ? "right" : "left";
-  const legLabel = isLeftHand ? "left" : "right";
   const cx = 250;
   const cy = 250;
   const rx = 220;
@@ -29,6 +30,24 @@ const CricketField = ({ fielders, isLoading, batterHand = "right" }: CricketFiel
     svgX: cx + pos.x * (rx - 20),
     svgY: cy + pos.y * (ry - 20),
   });
+
+  // Wagon wheel: convert ball data to lines from batsman position
+  const wagonLines = wagonWheelBalls
+    .filter((b) => b.runs > 0 && b.shotDirection !== "unknown")
+    .map((ball) => {
+      let angleDeg = SHOT_DIRECTION_ANGLES[ball.shotDirection] || 180;
+      // Flip for left-hander
+      if (isLeftHand && ball.shotDirection !== "straight") {
+        angleDeg = 360 - angleDeg;
+      }
+      const angleRad = (angleDeg * Math.PI) / 180;
+      // Length based on runs
+      const lengthFactor = ball.runs >= 6 ? 0.85 : ball.runs >= 4 ? 0.75 : ball.runs >= 2 ? 0.45 : 0.3;
+      const endX = cx + Math.sin(angleRad) * (rx - 20) * lengthFactor;
+      const endY = cy - Math.cos(angleRad) * (ry - 20) * lengthFactor;
+      const color = ball.runs >= 6 ? "hsl(38 90% 55%)" : ball.runs >= 4 ? "hsl(148 55% 50%)" : "hsl(210 20% 60%)";
+      return { startX: cx, startY: cy - 30, endX, endY, color, runs: ball.runs, id: ball.id };
+    });
 
   return (
     <div className="relative w-full max-w-[500px] mx-auto field-shadow rounded-full">
@@ -46,11 +65,28 @@ const CricketField = ({ fielders, isLoading, batterHand = "right" }: CricketFiel
         <line x1={cx - 14} y1={cy - 28} x2={cx + 14} y2={cy - 28} stroke="hsl(0 0% 100% / 0.6)" strokeWidth="1" />
         <line x1={cx - 14} y1={cy + 28} x2={cx + 14} y2={cy + 28} stroke="hsl(0 0% 100% / 0.6)" strokeWidth="1" />
 
-        {/* Direction labels */}
+        {/* Direction labels — BATSMAN at top, BOWLER at bottom */}
         <text x={20} y={cy + 4} textAnchor="middle" fill="hsl(210 20% 60%)" fontSize="9" fontFamily="Inter" transform={`rotate(-90, 20, ${cy})`}>{isLeftHand ? "LEG SIDE" : "OFF SIDE"}</text>
         <text x={480} y={cy + 4} textAnchor="middle" fill="hsl(210 20% 60%)" fontSize="9" fontFamily="Inter" transform={`rotate(90, 480, ${cy})`}>{isLeftHand ? "OFF SIDE" : "LEG SIDE"}</text>
-        <text x={cx} y={22} textAnchor="middle" fill="hsl(210 20% 60%)" fontSize="9" fontFamily="Inter">BOWLER'S END</text>
-        <text x={cx} y={490} textAnchor="middle" fill="hsl(210 20% 60%)" fontSize="9" fontFamily="Inter">BATSMAN'S END</text>
+        <text x={cx} y={22} textAnchor="middle" fill="hsl(210 20% 60%)" fontSize="9" fontFamily="Inter">BATSMAN'S END</text>
+        <text x={cx} y={490} textAnchor="middle" fill="hsl(210 20% 60%)" fontSize="9" fontFamily="Inter">BOWLER'S END</text>
+
+        {/* Wagon wheel lines */}
+        {wagonLines.map((line) => (
+          <motion.line
+            key={line.id}
+            x1={line.startX}
+            y1={line.startY}
+            x2={line.endX}
+            y2={line.endY}
+            stroke={line.color}
+            strokeWidth={line.runs >= 4 ? 2 : 1}
+            strokeOpacity={0.6}
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.5 }}
+          />
+        ))}
 
         {/* Fielders */}
         {fielders.map((fielder, i) => {
@@ -75,28 +111,11 @@ const CricketField = ({ fielders, isLoading, batterHand = "right" }: CricketFiel
                 <circle cx={svgX} cy={svgY} r={radius + 2} fill="none" stroke={colors.stroke} strokeWidth="1" strokeDasharray="3 2" opacity={0.6} />
               )}
               <circle cx={svgX} cy={svgY} r={radius} fill={colors.fill} stroke={colors.stroke} strokeWidth="1.5" />
-              <text
-                x={svgX}
-                y={svgY - radius - 5}
-                textAnchor="middle"
-                fill="hsl(0 0% 100%)"
-                fontSize="7"
-                fontFamily="JetBrains Mono"
-                fontWeight="500"
-              >
+              <text x={svgX} y={svgY - radius - 5} textAnchor="middle" fill="hsl(0 0% 100%)" fontSize="7" fontFamily="JetBrains Mono" fontWeight="500">
                 {fielder.label}
               </text>
               {fielder.category && (
-                <text
-                  x={svgX}
-                  y={svgY + radius + 10}
-                  textAnchor="middle"
-                  fill={colors.fill}
-                  fontSize="5.5"
-                  fontFamily="JetBrains Mono"
-                  fontWeight="600"
-                  opacity={0.9}
-                >
+                <text x={svgX} y={svgY + radius + 10} textAnchor="middle" fill={colors.fill} fontSize="5.5" fontFamily="JetBrains Mono" fontWeight="600" opacity={0.9}>
                   {fielder.category === "30yd-wall" ? "WALL" : fielder.category === "superfielder" ? "SUPER" : fielder.category.toUpperCase()}
                 </text>
               )}

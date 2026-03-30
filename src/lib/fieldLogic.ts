@@ -14,7 +14,7 @@ Match Conditions:
 
 COORDINATE SYSTEM (IMPORTANT):
 - x-axis: NEGATIVE = OFF SIDE (left on screen), POSITIVE = LEG SIDE (right on screen) for a right-handed batsman. FLIP for left-hander.
-- y-axis: NEGATIVE = BEHIND the batsman (keeper end, bottom of screen), POSITIVE = IN FRONT (bowler end, top of screen)
+- y-axis: NEGATIVE = BEHIND the batsman (keeper end, top of screen), POSITIVE = IN FRONT (bowler end, bottom of screen)
 - So for a right-hander: slips/gully are at negative x and negative y, cover/mid-off at negative x and positive y, mid-on/mid-wicket at positive x and positive y, fine leg at positive x and negative y.
 
 SPECIAL FIELDER CATEGORIES:
