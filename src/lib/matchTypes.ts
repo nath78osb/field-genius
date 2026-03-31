@@ -3,7 +3,7 @@ export type BatterType = "aggressive" | "defensive" | "balanced" | "tailender" |
 export type ShotType = "drive" | "cut" | "pull" | "hook" | "sweep" | "reverse-sweep" | "flick" | "glance" | "edge" | "defence" | "slog" | "loft" | "unknown";
 export type ShotDirection = "cover" | "mid-off" | "straight" | "mid-on" | "mid-wicket" | "square-leg" | "fine-leg" | "third-man" | "point" | "backward-point" | "gully" | "unknown";
 export type BallType = "short" | "good-length" | "full" | "yorker" | "wide" | "bouncer" | "unknown";
-export type BallResult = "dot" | "1" | "2" | "3" | "4" | "6" | "wicket" | "wide" | "no-ball" | "byes" | "leg-byes";
+export type BallResult = "dot" | "1" | "2" | "3" | "4" | "6" | "wicket" | "wide" | "no-ball";
 
 export interface BallData {
   id: string;
@@ -11,34 +11,11 @@ export interface BallData {
   ballInOver: number;
   result: BallResult;
   runs: number;
-  batRuns: number; // runs scored by the bat (for wagon wheel)
-  extraRuns: number; // extras on this delivery
   shotType: ShotType;
   shotDirection: ShotDirection;
   ballType: BallType;
   isWicket: boolean;
   timestamp: number;
-  batterName: string;
-  bowlerName: string;
-  innings: number;
-}
-
-export interface BatterStats {
-  name: string;
-  runs: number;
-  balls: number;
-  fours: number;
-  sixes: number;
-  isOut: boolean;
-}
-
-export interface BowlerStats {
-  name: string;
-  overs: number;
-  balls: number;
-  runs: number;
-  wickets: number;
-  extras: number;
 }
 
 export interface InningsScore {
@@ -47,7 +24,6 @@ export interface InningsScore {
   overs: number;
   balls: number;
   extras: number;
-  target: number | null; // chase target (1st innings score + 1)
 }
 
 export interface MatchState {
@@ -65,11 +41,6 @@ export interface MatchState {
   ballsSinceNewBatter: number;
   isMatchStarted: boolean;
   isMatchComplete: boolean;
-  batters: BatterStats[];
-  bowlers: BowlerStats[];
-  currentBatterIndex: number;
-  currentBowlerIndex: number;
-  nonStrikerIndex: number;
 }
 
 export interface AISuggestion {
@@ -93,8 +64,8 @@ export const SHOT_DIRECTION_ANGLES: Record<ShotDirection, number> = {
   "unknown": 180,
 };
 
-export function createInitialInnings(target: number | null = null): InningsScore {
-  return { runs: 0, wickets: 0, overs: 0, balls: 0, extras: 0, target };
+export function createInitialInnings(): InningsScore {
+  return { runs: 0, wickets: 0, overs: 0, balls: 0, extras: 0 };
 }
 
 export function getMaxInnings(format: Format): number {
@@ -104,7 +75,22 @@ export function getMaxInnings(format: Format): number {
 export function getMaxOvers(format: Format): number | null {
   if (format === "t20") return 20;
   if (format === "odi") return 50;
-  return null;
+  return null; // Test has no limit
+}
+
+export function ballResultToRuns(result: BallResult): number {
+  switch (result) {
+    case "dot": return 0;
+    case "1": return 1;
+    case "2": return 2;
+    case "3": return 3;
+    case "4": return 4;
+    case "6": return 6;
+    case "wicket": return 0;
+    case "wide": return 1;
+    case "no-ball": return 1;
+    default: return 0;
+  }
 }
 
 export function isLegalDelivery(result: BallResult): boolean {
