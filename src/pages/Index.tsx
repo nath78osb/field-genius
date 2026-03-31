@@ -8,10 +8,13 @@ import MatchSetup from "@/components/MatchSetup";
 import BallInput from "@/components/BallInput";
 import ScoreBoard from "@/components/ScoreBoard";
 import LiveSuggestions from "@/components/LiveSuggestions";
+import WagonWheel from "@/components/WagonWheel";
+import ImportScore from "@/components/ImportScore";
 import { getDefaultField, generateFieldPrompt, parseFieldResponse, BowlingTactics } from "@/lib/fieldLogic";
 import {
   MatchState, AISuggestion, BallData, BallResult, ShotType, ShotDirection, BallType,
-  createInitialInnings, getMaxInnings, ballResultToRuns, isLegalDelivery,
+  BatterStats, BowlerStats, InningsScore,
+  createInitialInnings, getMaxInnings, getMaxOvers, isLegalDelivery,
 } from "@/lib/matchTypes";
 import { toast } from "sonner";
 
@@ -50,6 +53,7 @@ const Index = () => {
   const [suggestions, setSuggestions] = useState<AISuggestion[]>([]);
   const [pendingFielders, setPendingFielders] = useState<FielderPosition[] | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   // ── Manual mode handler ──
   const handleGenerate = async () => {
@@ -109,63 +113,193 @@ const Index = () => {
       ballsSinceNewBatter: 0,
       isMatchStarted: true,
       isMatchComplete: false,
+      batters: [
+        { name: "Batter 1", runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false },
+        { name: "Batter 2", runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false },
+      ],
+      bowlers: [
+        { name: "Bowler 1", overs: 0, balls: 0, runs: 0, wickets: 0, extras: 0 },
+      ],
+      currentBatterIndex: 0,
+      nonStrikerIndex: 1,
+      currentBowlerIndex: 0,
     });
     setFielders(getDefaultField());
     setSuggestions([]);
     setPendingFielders(null);
+    setShowImport(false);
   };
 
-  const handleBallRecorded = useCallback((result: BallResult, shotType: ShotType, shotDirection: ShotDirection, ballType: BallType) => {
+  const handleImportScore = (data: {
+    innings: InningsScore;
+    batters: BatterStats[];
+    bowlers: BowlerStats[];
+    previousInnings: InningsScore[];
+  }) => {
     if (!match) return;
+    const inningsArr = [...data.previousInnings, data.innings];
+    const currentInningsNum = inningsArr.length;
+    setMatch({
+      ...match,
+      currentInnings: currentInningsNum,
+      innings: inningsArr,
+      batters: data.batters,
+      bowlers: data.bowlers,
+      currentBatterIndex: 0,
+      nonStrikerIndex: Math.min(1, data.batters.length - 1),
+      currentBowlerIndex: data.bowlers.length - 1,
+      ballHistory: match.ballHistory,
+    });
+    setShowImport(false);
+    toast.success("Score imported!");
+  };
 
-    const currentInnings = match.innings[match.currentInnings - 1];
-    const runs = ballResultToRuns(result);
+  const handleBallRecorded = useCallback((result: BallResult, shotType: ShotType, shotDirection: ShotDirection, ballType: BallType, additionalRuns: number) => {
+    if (!match || match.isMatchComplete) return;
+
+    const currentInn = match.innings[match.currentInnings - 1];
     const legal = isLegalDelivery(result);
     const isWicket = result === "wicket";
 
+    // Calculate bat runs and extra runs
+    let batRuns = 0;
+    let extraRuns = 0;
+
+    switch (result) {
+      case "dot": batRuns = 0; break;
+      case "1": case "2": case "3": case "4": case "6":
+        batRuns = parseInt(result); break;
+      case "wicket": batRuns = 0; break;
+      case "wide": extraRuns = 1; break;
+      case "no-ball": extraRuns = 1; batRuns = additionalRuns; break;
+      case "byes": case "leg-byes": extraRuns = additionalRuns; break;
+    }
+
+    const totalRuns = batRuns + extraRuns;
+    const striker = match.batters[match.currentBatterIndex];
+    const bowler = match.bowlers[match.currentBowlerIndex];
+
     const newBall: BallData = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-      over: currentInnings.overs,
-      ballInOver: currentInnings.balls,
+      over: currentInn.overs,
+      ballInOver: currentInn.balls,
       result,
-      runs,
+      runs: totalRuns,
+      batRuns,
+      extraRuns,
       shotType,
       shotDirection,
       ballType,
       isWicket,
       timestamp: Date.now(),
+      batterName: striker?.name || "Unknown",
+      bowlerName: bowler?.name || "Unknown",
+      innings: match.currentInnings,
     };
 
-    const newBalls = currentInnings.balls + (legal ? 1 : 0);
-    const newOvers = newBalls >= 6 ? currentInnings.overs + 1 : currentInnings.overs;
+    const newBalls = currentInn.balls + (legal ? 1 : 0);
+    const newOvers = newBalls >= 6 ? currentInn.overs + 1 : currentInn.overs;
     const ballsAfter = newBalls >= 6 ? 0 : newBalls;
 
-    const updatedInnings = {
-      ...currentInnings,
-      runs: currentInnings.runs + runs,
-      wickets: currentInnings.wickets + (isWicket ? 1 : 0),
+    const updatedInnings: InningsScore = {
+      ...currentInn,
+      runs: currentInn.runs + totalRuns,
+      wickets: currentInn.wickets + (isWicket ? 1 : 0),
       overs: newOvers,
       balls: ballsAfter,
-      extras: currentInnings.extras + (!legal ? 1 : 0),
+      extras: currentInn.extras + extraRuns,
     };
+
+    // Update batter stats
+    const updatedBatters = [...match.batters];
+    if (striker) {
+      const si = match.currentBatterIndex;
+      updatedBatters[si] = {
+        ...striker,
+        runs: striker.runs + batRuns,
+        balls: striker.balls + (legal ? 1 : 0),
+        fours: striker.fours + (batRuns === 4 ? 1 : 0),
+        sixes: striker.sixes + (batRuns === 6 ? 1 : 0),
+        isOut: isWicket,
+      };
+    }
+
+    // Update bowler stats
+    const updatedBowlers = [...match.bowlers];
+    if (bowler) {
+      const bi = match.currentBowlerIndex;
+      const bowlerBalls = bowler.balls + (legal ? 1 : 0);
+      const bowlerOvers = bowlerBalls >= 6 ? bowler.overs + 1 : bowler.overs;
+      const bowlerBallsAfter = bowlerBalls >= 6 ? 0 : bowlerBalls;
+      updatedBowlers[bi] = {
+        ...bowler,
+        overs: bowlerOvers,
+        balls: bowlerBallsAfter,
+        runs: bowler.runs + totalRuns,
+        wickets: bowler.wickets + (isWicket ? 1 : 0),
+        extras: bowler.extras + extraRuns,
+      };
+    }
 
     const newInningsArr = [...match.innings];
     newInningsArr[match.currentInnings - 1] = updatedInnings;
 
-    const newBallsSinceNew = isWicket ? 0 : match.ballsSinceNewBatter + 1;
+    // Rotate strike on odd runs or end of over
+    let newStrikerIdx = match.currentBatterIndex;
+    let newNonStrikerIdx = match.nonStrikerIndex;
+    const oddRuns = totalRuns % 2 === 1;
+    if (oddRuns && !isWicket) {
+      [newStrikerIdx, newNonStrikerIdx] = [newNonStrikerIdx, newStrikerIdx];
+    }
+    // End of over: swap
+    if (ballsAfter === 0 && legal) {
+      [newStrikerIdx, newNonStrikerIdx] = [newNonStrikerIdx, newStrikerIdx];
+    }
+
+    // New batter on wicket
+    if (isWicket) {
+      const nextBatterIdx = updatedBatters.length;
+      updatedBatters.push({ name: `Batter ${nextBatterIdx + 1}`, runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false });
+      newStrikerIdx = nextBatterIdx;
+    }
+
+    // Check if chase target reached
+    let isComplete = match.isMatchComplete;
+    if (updatedInnings.target && updatedInnings.runs >= updatedInnings.target) {
+      isComplete = true;
+      toast.success("🏏 Target reached! Match won!");
+    }
+
+    // Check if all out (10 wickets)
+    if (updatedInnings.wickets >= 10) {
+      isComplete = true;
+      toast.info("All out!");
+    }
+
+    // Check max overs
+    const maxOvers = getMaxOvers(match.format);
+    if (maxOvers && updatedInnings.overs >= maxOvers && ballsAfter === 0) {
+      isComplete = true;
+      toast.info("Innings complete - overs exhausted");
+    }
 
     const updated: MatchState = {
       ...match,
       innings: newInningsArr,
       ballHistory: [...match.ballHistory, newBall],
       isNewBatter: isWicket,
-      ballsSinceNewBatter: newBallsSinceNew,
+      ballsSinceNewBatter: isWicket ? 0 : match.ballsSinceNewBatter + 1,
+      batters: updatedBatters,
+      bowlers: updatedBowlers,
+      currentBatterIndex: newStrikerIdx,
+      nonStrikerIndex: newNonStrikerIdx,
+      isMatchComplete: isComplete,
     };
     setMatch(updated);
 
-    // Trigger AI analysis every 3 balls, on wickets, or on boundaries
-    const totalBalls = updated.ballHistory.length;
-    if (totalBalls >= 2 && (totalBalls % 3 === 0 || isWicket || runs >= 4)) {
+    // AI analysis trigger
+    const totalBallsCount = updated.ballHistory.length;
+    if (!isComplete && totalBallsCount >= 2 && (totalBallsCount % 3 === 0 || isWicket || batRuns >= 4)) {
       runLiveAnalysis(updated);
     }
   }, [match]);
@@ -241,13 +375,24 @@ const Index = () => {
       toast.info("Match complete!");
       return;
     }
+    const prevInningsScore = match.innings[match.currentInnings - 1];
+    const target = prevInningsScore.runs + 1;
     setMatch({
       ...match,
       currentInnings: match.currentInnings + 1,
-      innings: [...match.innings, createInitialInnings()],
-      ballHistory: [],
+      innings: [...match.innings, createInitialInnings(target)],
       isNewBatter: true,
       ballsSinceNewBatter: 0,
+      batters: [
+        { name: "Batter 1", runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false },
+        { name: "Batter 2", runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false },
+      ],
+      bowlers: [
+        { name: "Bowler 1", overs: 0, balls: 0, runs: 0, wickets: 0, extras: 0 },
+      ],
+      currentBatterIndex: 0,
+      nonStrikerIndex: 1,
+      currentBowlerIndex: 0,
     });
     setSuggestions([]);
     setPendingFielders(null);
@@ -259,9 +404,20 @@ const Index = () => {
     setSuggestions([]);
     setPendingFielders(null);
     setFielders(getDefaultField());
+    setShowImport(false);
   };
 
-  const currentBatterHand = mode === "live" && match ? match.batterHand : settings.batterHand;
+  const handleChangeBowler = () => {
+    if (!match) return;
+    const nextIdx = match.bowlers.length;
+    const updated = {
+      ...match,
+      bowlers: [...match.bowlers, { name: `Bowler ${nextIdx + 1}`, overs: 0, balls: 0, runs: 0, wickets: 0, extras: 0 }],
+      currentBowlerIndex: nextIdx,
+    };
+    setMatch(updated);
+    toast.info(`New bowler: Bowler ${nextIdx + 1}`);
+  };
 
   return (
     <div className="min-h-screen tactical-grid">
@@ -282,9 +438,7 @@ const Index = () => {
               key={m}
               onClick={() => setMode(m)}
               className={`px-4 py-2 rounded-lg text-xs font-mono uppercase tracking-wider transition-all ${
-                mode === m
-                  ? "bg-accent text-accent-foreground"
-                  : "bg-secondary text-muted-foreground hover:text-foreground"
+                mode === m ? "bg-accent text-accent-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"
               }`}
             >
               {m === "manual" ? "Manual Setup" : "Live Match"}
@@ -303,31 +457,59 @@ const Index = () => {
               <>
                 <ScoreBoard match={match} />
 
+                {/* Import score toggle */}
+                {!showImport && (
+                  <button onClick={() => setShowImport(true)} className="w-full text-[10px] font-mono text-primary hover:text-primary/80 uppercase tracking-wider text-center py-1">
+                    📥 Import Current Score
+                  </button>
+                )}
+
+                {showImport && (
+                  <div className="bg-card/80 backdrop-blur border border-border rounded-xl p-4">
+                    <ImportScore onImport={handleImportScore} />
+                    <button onClick={() => setShowImport(false)} className="w-full mt-2 text-[10px] font-mono text-muted-foreground hover:text-foreground uppercase tracking-wider text-center">
+                      Cancel
+                    </button>
+                  </div>
+                )}
+
                 <CricketField
                   fielders={fielders}
                   isLoading={isAnalyzing}
                   batterHand={match.batterHand}
-                  wagonWheelBalls={match.ballHistory}
+                />
+
+                {/* Wagon Wheel (separate from field) */}
+                <WagonWheel
+                  ballHistory={match.ballHistory}
+                  batters={match.batters}
+                  batterHand={match.batterHand}
+                  currentInnings={match.currentInnings}
                 />
 
                 {/* Ball input */}
-                <div className="bg-card/80 backdrop-blur border border-border rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Ball Input</span>
-                    <div className="flex gap-2">
-                      <button onClick={handleNewInnings} className="text-[10px] font-mono text-primary hover:text-primary/80 uppercase tracking-wider">
-                        New Innings
-                      </button>
-                      <button onClick={handleEndMatch} className="text-[10px] font-mono text-destructive hover:text-destructive/80 uppercase tracking-wider">
-                        End Match
-                      </button>
+                {!match.isMatchComplete && (
+                  <div className="bg-card/80 backdrop-blur border border-border rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Ball Input</span>
+                      <div className="flex gap-2">
+                        <button onClick={handleChangeBowler} className="text-[10px] font-mono text-accent hover:text-accent/80 uppercase tracking-wider">
+                          Change Bowler
+                        </button>
+                        <button onClick={handleNewInnings} className="text-[10px] font-mono text-primary hover:text-primary/80 uppercase tracking-wider">
+                          New Innings
+                        </button>
+                        <button onClick={handleEndMatch} className="text-[10px] font-mono text-destructive hover:text-destructive/80 uppercase tracking-wider">
+                          End Match
+                        </button>
+                      </div>
                     </div>
+                    <BallInput onBallRecorded={handleBallRecorded} disabled={isAnalyzing || match.isMatchComplete} />
                   </div>
-                  <BallInput onBallRecorded={handleBallRecorded} disabled={isAnalyzing} />
-                </div>
+                )}
 
                 {/* New batter alert */}
-                {match.isNewBatter && match.ballHistory.length > 0 && (
+                {match.isNewBatter && match.ballHistory.length > 0 && !match.isMatchComplete && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -365,6 +547,13 @@ const Index = () => {
                       );
                     })}
                   </div>
+                )}
+
+                {/* Match complete actions */}
+                {match.isMatchComplete && (
+                  <button onClick={handleEndMatch} className="w-full h-10 rounded-lg bg-accent text-accent-foreground font-mono uppercase tracking-wider text-sm font-bold">
+                    New Match
+                  </button>
                 )}
               </>
             )}
