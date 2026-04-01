@@ -259,7 +259,7 @@ const Index = () => {
     // New batter on wicket
     if (isWicket) {
       const nextBatterIdx = updatedBatters.length;
-      updatedBatters.push({ name: `Batter ${nextBatterIdx + 1}`, runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false });
+      updatedBatters.push({ name: `Batter ${nextBatterIdx + 1}`, runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false, hand: "right", type: "unknown" });
       newStrikerIdx = nextBatterIdx;
     }
 
