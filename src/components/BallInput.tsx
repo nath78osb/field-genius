@@ -63,6 +63,7 @@ const BallInput = ({ onBallRecorded, disabled }: BallInputProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const [noBallRuns, setNoBallRuns] = useState(0);
   const [byeRuns, setByeRuns] = useState(1);
+  const [wideRuns, setWideRuns] = useState(1);
 
   const handleResultTap = (result: BallResult) => {
     if (disabled) return;
