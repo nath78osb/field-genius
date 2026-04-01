@@ -92,6 +92,7 @@ const BallInput = ({ onBallRecorded, disabled }: BallInputProps) => {
     setBallType("unknown");
     setNoBallRuns(0);
     setByeRuns(1);
+    setWideRuns(1);
   };
 
   const needsConfirm = showDetails || selectedResult === "no-ball" || selectedResult === "wide" || selectedResult === "byes" || selectedResult === "leg-byes";
