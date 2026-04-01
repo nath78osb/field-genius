@@ -283,6 +283,7 @@ const Index = () => {
       toast.info("Innings complete - overs exhausted");
     }
 
+    const newStriker = updatedBatters[newStrikerIdx];
     const updated: MatchState = {
       ...match,
       innings: newInningsArr,
@@ -294,6 +295,8 @@ const Index = () => {
       currentBatterIndex: newStrikerIdx,
       nonStrikerIndex: newNonStrikerIdx,
       isMatchComplete: isComplete,
+      batterHand: newStriker?.hand || match.batterHand,
+      batterType: newStriker?.type || match.batterType,
     };
     setMatch(updated);
 
