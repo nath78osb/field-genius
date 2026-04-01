@@ -438,7 +438,7 @@ const Index = () => {
     const nextIdx = match.bowlers.length;
     const updated = {
       ...match,
-      bowlers: [...match.bowlers, { name: `Bowler ${nextIdx + 1}`, overs: 0, balls: 0, runs: 0, wickets: 0, extras: 0 }],
+      bowlers: [...match.bowlers, { name: `Bowler ${nextIdx + 1}`, overs: 0, balls: 0, runs: 0, wickets: 0, extras: 0, bowlerType: "fast", bowlerArm: "right" }],
       currentBowlerIndex: nextIdx,
     };
     setMatch(updated);
