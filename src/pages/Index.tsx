@@ -481,7 +481,7 @@ const Index = () => {
               </motion.div>
             ) : (
               <>
-                <ScoreBoard match={match} />
+                <ScoreBoard match={match} onUpdateBatterType={handleUpdateBatterType} onUpdateBowlerType={handleUpdateBowlerType} />
 
                 {/* Import score toggle */}
                 {!showImport && (
