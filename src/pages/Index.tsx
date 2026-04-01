@@ -13,7 +13,7 @@ import ImportScore from "@/components/ImportScore";
 import { getDefaultField, generateFieldPrompt, parseFieldResponse, BowlingTactics } from "@/lib/fieldLogic";
 import {
   MatchState, AISuggestion, BallData, BallResult, ShotType, ShotDirection, BallType,
-  BatterStats, BowlerStats, InningsScore,
+  BatterStats, BowlerStats, InningsScore, BatterType,
   createInitialInnings, getMaxInnings, getMaxOvers, isLegalDelivery,
 } from "@/lib/matchTypes";
 import { toast } from "sonner";
