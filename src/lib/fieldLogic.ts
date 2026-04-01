@@ -18,12 +18,12 @@ COORDINATE SYSTEM (IMPORTANT):
 - So for a right-hander: slips/gully are at negative x and negative y, cover/mid-off at negative x and positive y, mid-on/mid-wicket at positive x and positive y, fine leg at positive x and negative y.
 
 SPECIAL FIELDER CATEGORIES:
-Assign one of these categories to the most appropriate fielders (not all fielders need a category):
-- "30yd-wall": Your best infielder — placed where most grounded shots are expected, within the 30-yard circle.
-- "sprinter": The fastest runner — placed in the outfield where the batter tends to hit and run singles/doubles.
-- "catcher": The best catcher — placed where the batter hits the most boundaries, to take catches.
-- "superfielder": A combination of sprinter and catcher — use ONLY if both roles coincide at the same position.
-Typically assign 2-4 of these categories across the 11 fielders.
+Most fielders should have category: null. Only assign a category when the position genuinely demands that specialist skill:
+- "30yd-wall": ONLY for an infielder (e.g. short cover, short mid-wicket) positioned specifically to stop grounded drives/pushes. NOT for slips, keeper, or deep fielders.
+- "sprinter": ONLY for a boundary rider or sweeper covering a large zone where the batter likes to rotate strike (e.g. deep square leg, deep point). NOT for close catchers or infielders.
+- "catcher": ONLY for a close catching position (e.g. slip, gully, short leg, silly point) where edges or top-edges are expected. NOT for outfielders.
+- "superfielder": ONLY if a single position genuinely requires both catching and ground-fielding athleticism (very rare — e.g. a backward point saving runs AND taking catches).
+Assign at most 2-3 categories total. The bowler, keeper, mid-off, mid-on, and most standard positions should be null.
 
 Return a JSON object with two keys:
 1. "fielders": array of exactly 11 objects, each with:
