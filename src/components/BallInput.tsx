@@ -79,6 +79,7 @@ const BallInput = ({ onBallRecorded, disabled }: BallInputProps) => {
     if (!selectedResult) return;
     let additionalRuns = 0;
     if (selectedResult === "no-ball") additionalRuns = noBallRuns;
+    if (selectedResult === "wide") additionalRuns = wideRuns;
     if (selectedResult === "byes" || selectedResult === "leg-byes") additionalRuns = byeRuns;
     onBallRecorded(selectedResult, shotType, shotDirection, ballType, additionalRuns);
     resetState();
