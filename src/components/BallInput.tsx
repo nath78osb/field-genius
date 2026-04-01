@@ -63,6 +63,7 @@ const BallInput = ({ onBallRecorded, disabled }: BallInputProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const [noBallRuns, setNoBallRuns] = useState(0);
   const [byeRuns, setByeRuns] = useState(1);
+  const [wideRuns, setWideRuns] = useState(1);
 
   const handleResultTap = (result: BallResult) => {
     if (disabled) return;
@@ -78,6 +79,7 @@ const BallInput = ({ onBallRecorded, disabled }: BallInputProps) => {
     if (!selectedResult) return;
     let additionalRuns = 0;
     if (selectedResult === "no-ball") additionalRuns = noBallRuns;
+    if (selectedResult === "wide") additionalRuns = wideRuns;
     if (selectedResult === "byes" || selectedResult === "leg-byes") additionalRuns = byeRuns;
     onBallRecorded(selectedResult, shotType, shotDirection, ballType, additionalRuns);
     resetState();
@@ -90,6 +92,7 @@ const BallInput = ({ onBallRecorded, disabled }: BallInputProps) => {
     setBallType("unknown");
     setNoBallRuns(0);
     setByeRuns(1);
+    setWideRuns(1);
   };
 
   const needsConfirm = showDetails || selectedResult === "no-ball" || selectedResult === "wide" || selectedResult === "byes" || selectedResult === "leg-byes";
@@ -164,12 +167,26 @@ const BallInput = ({ onBallRecorded, disabled }: BallInputProps) => {
         )}
       </AnimatePresence>
 
-      {/* Wide confirm */}
+      {/* Wide confirm / runs selector */}
       <AnimatePresence>
         {selectedResult === "wide" && !showDetails && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-            <button onClick={handleConfirm} className="w-full h-10 rounded-lg bg-accent text-accent-foreground font-mono uppercase tracking-wider text-sm font-bold">
-              Record Wide (1 run)
+            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Wide runs (default 1)</span>
+            <div className="flex gap-1 mt-1">
+              {[1, 2, 3, 4, 5].map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setWideRuns(r)}
+                  className={`flex-1 h-9 rounded-md text-sm font-bold transition-all ${
+                    wideRuns === r ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+            <button onClick={handleConfirm} className="w-full mt-2 h-10 rounded-lg bg-accent text-accent-foreground font-mono uppercase tracking-wider text-sm font-bold">
+              Record Wide ({wideRuns})
             </button>
           </motion.div>
         )}

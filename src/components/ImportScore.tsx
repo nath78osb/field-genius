@@ -22,9 +22,6 @@ const ImportScore = ({ onImport }: ImportScoreProps) => {
   const [balls, setBalls] = useState(0);
   const [extras, setExtras] = useState(0);
   const [prevRuns, setPrevRuns] = useState<number | null>(null);
-  const [prevWickets, setPrevWickets] = useState(0);
-  const [prevOvers, setPrevOvers] = useState(0);
-  const [prevBalls, setPrevBalls] = useState(0);
 
   const [batters, setBatters] = useState<BatterStats[]>([
     { name: "Batter 1", runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false },
@@ -60,7 +57,7 @@ const ImportScore = ({ onImport }: ImportScoreProps) => {
   const handleImport = () => {
     const previousInnings: InningsScore[] = [];
     if (prevRuns !== null) {
-      previousInnings.push({ runs: prevRuns, wickets: prevWickets, overs: prevOvers, balls: prevBalls, extras: 0, target: null });
+      previousInnings.push({ runs: prevRuns, wickets: 0, overs: 0, balls: 0, extras: 0, target: null });
     }
     const target = prevRuns !== null ? prevRuns + 1 : null;
     onImport({
@@ -77,25 +74,8 @@ const ImportScore = ({ onImport }: ImportScoreProps) => {
 
       {/* Previous innings */}
       <div className="bg-muted/30 rounded-lg p-3 space-y-2">
-        <Label className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Previous Innings (optional)</Label>
-        <div className="grid grid-cols-4 gap-2">
-          <div>
-            <Label className="text-[9px] text-muted-foreground">Runs</Label>
-            <Input type="number" value={prevRuns ?? ""} onChange={(e) => setPrevRuns(e.target.value ? parseInt(e.target.value) : null)} className="h-8 text-xs" placeholder="-" />
-          </div>
-          <div>
-            <Label className="text-[9px] text-muted-foreground">Wkts</Label>
-            <Input type="number" value={prevWickets} onChange={(e) => setPrevWickets(parseInt(e.target.value) || 0)} className="h-8 text-xs" />
-          </div>
-          <div>
-            <Label className="text-[9px] text-muted-foreground">Overs</Label>
-            <Input type="number" value={prevOvers} onChange={(e) => setPrevOvers(parseInt(e.target.value) || 0)} className="h-8 text-xs" />
-          </div>
-          <div>
-            <Label className="text-[9px] text-muted-foreground">Balls</Label>
-            <Input type="number" value={prevBalls} onChange={(e) => setPrevBalls(parseInt(e.target.value) || 0)} className="h-8 text-xs" />
-          </div>
-        </div>
+        <Label className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Previous Innings Score (optional)</Label>
+        <Input type="number" value={prevRuns ?? ""} onChange={(e) => setPrevRuns(e.target.value ? parseInt(e.target.value) : null)} className="h-8 text-xs" placeholder="Total runs" />
       </div>
 
       {/* Current innings score */}
@@ -125,19 +105,17 @@ const ImportScore = ({ onImport }: ImportScoreProps) => {
         </div>
       </div>
 
-      {/* Batters */}
+      {/* Batters - only name, runs, balls */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Batters</Label>
           <button onClick={addBatter} className="text-[10px] font-mono text-accent flex items-center gap-1"><Plus className="w-3 h-3" /> Add</button>
         </div>
         {batters.map((b, i) => (
-          <div key={i} className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-1 items-end">
+          <div key={i} className="grid grid-cols-[1fr_auto_auto_auto] gap-1 items-end">
             <Input value={b.name} onChange={(e) => updateBatter(i, "name", e.target.value)} className="h-7 text-[10px]" placeholder="Name" />
-            <Input type="number" value={b.runs} onChange={(e) => updateBatter(i, "runs", parseInt(e.target.value) || 0)} className="h-7 text-[10px] w-12" placeholder="R" />
-            <Input type="number" value={b.balls} onChange={(e) => updateBatter(i, "balls", parseInt(e.target.value) || 0)} className="h-7 text-[10px] w-12" placeholder="B" />
-            <Input type="number" value={b.fours} onChange={(e) => updateBatter(i, "fours", parseInt(e.target.value) || 0)} className="h-7 text-[10px] w-10" placeholder="4s" />
-            <Input type="number" value={b.sixes} onChange={(e) => updateBatter(i, "sixes", parseInt(e.target.value) || 0)} className="h-7 text-[10px] w-10" placeholder="6s" />
+            <Input type="number" value={b.runs} onChange={(e) => updateBatter(i, "runs", parseInt(e.target.value) || 0)} className="h-7 text-[10px] w-14" placeholder="R" />
+            <Input type="number" value={b.balls} onChange={(e) => updateBatter(i, "balls", parseInt(e.target.value) || 0)} className="h-7 text-[10px] w-14" placeholder="B" />
             {batters.length > 2 && (
               <button onClick={() => removeBatter(i)} className="text-destructive"><Trash2 className="w-3 h-3" /></button>
             )}

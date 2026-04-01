@@ -13,7 +13,7 @@ import ImportScore from "@/components/ImportScore";
 import { getDefaultField, generateFieldPrompt, parseFieldResponse, BowlingTactics } from "@/lib/fieldLogic";
 import {
   MatchState, AISuggestion, BallData, BallResult, ShotType, ShotDirection, BallType,
-  BatterStats, BowlerStats, InningsScore,
+  BatterStats, BowlerStats, InningsScore, BatterType,
   createInitialInnings, getMaxInnings, getMaxOvers, isLegalDelivery,
 } from "@/lib/matchTypes";
 import { toast } from "sonner";
@@ -101,10 +101,10 @@ const Index = () => {
     setMatch({
       format: data.format,
       pitchCondition: data.pitchCondition,
-      batterHand: data.batterHand,
-      batterType: data.batterType,
-      bowlerType: data.bowlerType,
-      bowlerArm: data.bowlerArm,
+      batterHand: "right",
+      batterType: "unknown",
+      bowlerType: "fast",
+      bowlerArm: "right",
       currentInnings: 1,
       totalInnings,
       innings: [createInitialInnings()],
@@ -114,11 +114,11 @@ const Index = () => {
       isMatchStarted: true,
       isMatchComplete: false,
       batters: [
-        { name: "Batter 1", runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false },
-        { name: "Batter 2", runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false },
+        { name: "Batter 1", runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false, hand: "right", type: "unknown" },
+        { name: "Batter 2", runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false, hand: "right", type: "unknown" },
       ],
       bowlers: [
-        { name: "Bowler 1", overs: 0, balls: 0, runs: 0, wickets: 0, extras: 0 },
+        { name: "Bowler 1", overs: 0, balls: 0, runs: 0, wickets: 0, extras: 0, bowlerType: "fast", bowlerArm: "right" },
       ],
       currentBatterIndex: 0,
       nonStrikerIndex: 1,
@@ -170,7 +170,7 @@ const Index = () => {
       case "1": case "2": case "3": case "4": case "6":
         batRuns = parseInt(result); break;
       case "wicket": batRuns = 0; break;
-      case "wide": extraRuns = 1; break;
+      case "wide": extraRuns = additionalRuns || 1; break;
       case "no-ball": extraRuns = 1; batRuns = additionalRuns; break;
       case "byes": case "leg-byes": extraRuns = additionalRuns; break;
     }
@@ -259,7 +259,7 @@ const Index = () => {
     // New batter on wicket
     if (isWicket) {
       const nextBatterIdx = updatedBatters.length;
-      updatedBatters.push({ name: `Batter ${nextBatterIdx + 1}`, runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false });
+      updatedBatters.push({ name: `Batter ${nextBatterIdx + 1}`, runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false, hand: "right", type: "unknown" });
       newStrikerIdx = nextBatterIdx;
     }
 
@@ -283,6 +283,7 @@ const Index = () => {
       toast.info("Innings complete - overs exhausted");
     }
 
+    const newStriker = updatedBatters[newStrikerIdx];
     const updated: MatchState = {
       ...match,
       innings: newInningsArr,
@@ -294,6 +295,8 @@ const Index = () => {
       currentBatterIndex: newStrikerIdx,
       nonStrikerIndex: newNonStrikerIdx,
       isMatchComplete: isComplete,
+      batterHand: newStriker?.hand || match.batterHand,
+      batterType: newStriker?.type || match.batterType,
     };
     setMatch(updated);
 
@@ -384,11 +387,11 @@ const Index = () => {
       isNewBatter: true,
       ballsSinceNewBatter: 0,
       batters: [
-        { name: "Batter 1", runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false },
-        { name: "Batter 2", runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false },
+        { name: "Batter 1", runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false, hand: "right", type: "unknown" },
+        { name: "Batter 2", runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false, hand: "right", type: "unknown" },
       ],
       bowlers: [
-        { name: "Bowler 1", overs: 0, balls: 0, runs: 0, wickets: 0, extras: 0 },
+        { name: "Bowler 1", overs: 0, balls: 0, runs: 0, wickets: 0, extras: 0, bowlerType: "fast", bowlerArm: "right" },
       ],
       currentBatterIndex: 0,
       nonStrikerIndex: 1,
@@ -397,6 +400,32 @@ const Index = () => {
     setSuggestions([]);
     setPendingFielders(null);
     setFielders(getDefaultField());
+  };
+
+  const handleUpdateBatterType = (index: number, hand: string, type: BatterType) => {
+    if (!match) return;
+    const updatedBatters = [...match.batters];
+    updatedBatters[index] = { ...updatedBatters[index], hand, type };
+    const isStriker = index === match.currentBatterIndex;
+    setMatch({
+      ...match,
+      batters: updatedBatters,
+      batterHand: isStriker ? hand : match.batterHand,
+      batterType: isStriker ? type : match.batterType,
+    });
+  };
+
+  const handleUpdateBowlerType = (index: number, bowlerType: string, bowlerArm: string) => {
+    if (!match) return;
+    const updatedBowlers = [...match.bowlers];
+    updatedBowlers[index] = { ...updatedBowlers[index], bowlerType, bowlerArm };
+    const isCurrent = index === match.currentBowlerIndex;
+    setMatch({
+      ...match,
+      bowlers: updatedBowlers,
+      bowlerType: isCurrent ? bowlerType : match.bowlerType,
+      bowlerArm: isCurrent ? bowlerArm : match.bowlerArm,
+    });
   };
 
   const handleEndMatch = () => {
@@ -412,7 +441,7 @@ const Index = () => {
     const nextIdx = match.bowlers.length;
     const updated = {
       ...match,
-      bowlers: [...match.bowlers, { name: `Bowler ${nextIdx + 1}`, overs: 0, balls: 0, runs: 0, wickets: 0, extras: 0 }],
+      bowlers: [...match.bowlers, { name: `Bowler ${nextIdx + 1}`, overs: 0, balls: 0, runs: 0, wickets: 0, extras: 0, bowlerType: "fast", bowlerArm: "right" }],
       currentBowlerIndex: nextIdx,
     };
     setMatch(updated);
@@ -455,7 +484,7 @@ const Index = () => {
               </motion.div>
             ) : (
               <>
-                <ScoreBoard match={match} />
+                <ScoreBoard match={match} onUpdateBatterType={handleUpdateBatterType} onUpdateBowlerType={handleUpdateBowlerType} />
 
                 {/* Import score toggle */}
                 {!showImport && (
