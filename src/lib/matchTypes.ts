@@ -30,6 +30,8 @@ export interface BatterStats {
   fours: number;
   sixes: number;
   isOut: boolean;
+  hand?: string;
+  type?: BatterType;
 }
 
 export interface BowlerStats {
@@ -39,6 +41,8 @@ export interface BowlerStats {
   runs: number;
   wickets: number;
   extras: number;
+  bowlerType?: string;
+  bowlerArm?: string;
 }
 
 export interface InningsScore {
