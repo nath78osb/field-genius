@@ -384,11 +384,11 @@ const Index = () => {
       isNewBatter: true,
       ballsSinceNewBatter: 0,
       batters: [
-        { name: "Batter 1", runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false },
-        { name: "Batter 2", runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false },
+        { name: "Batter 1", runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false, hand: "right", type: "unknown" },
+        { name: "Batter 2", runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false, hand: "right", type: "unknown" },
       ],
       bowlers: [
-        { name: "Bowler 1", overs: 0, balls: 0, runs: 0, wickets: 0, extras: 0 },
+        { name: "Bowler 1", overs: 0, balls: 0, runs: 0, wickets: 0, extras: 0, bowlerType: "fast", bowlerArm: "right" },
       ],
       currentBatterIndex: 0,
       nonStrikerIndex: 1,
@@ -397,6 +397,32 @@ const Index = () => {
     setSuggestions([]);
     setPendingFielders(null);
     setFielders(getDefaultField());
+  };
+
+  const handleUpdateBatterType = (index: number, hand: string, type: BatterType) => {
+    if (!match) return;
+    const updatedBatters = [...match.batters];
+    updatedBatters[index] = { ...updatedBatters[index], hand, type };
+    const isStriker = index === match.currentBatterIndex;
+    setMatch({
+      ...match,
+      batters: updatedBatters,
+      batterHand: isStriker ? hand : match.batterHand,
+      batterType: isStriker ? type : match.batterType,
+    });
+  };
+
+  const handleUpdateBowlerType = (index: number, bowlerType: string, bowlerArm: string) => {
+    if (!match) return;
+    const updatedBowlers = [...match.bowlers];
+    updatedBowlers[index] = { ...updatedBowlers[index], bowlerType, bowlerArm };
+    const isCurrent = index === match.currentBowlerIndex;
+    setMatch({
+      ...match,
+      bowlers: updatedBowlers,
+      bowlerType: isCurrent ? bowlerType : match.bowlerType,
+      bowlerArm: isCurrent ? bowlerArm : match.bowlerArm,
+    });
   };
 
   const handleEndMatch = () => {
