@@ -3,14 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Play } from "lucide-react";
-import type { Format, BatterType } from "@/lib/matchTypes";
+import type { Format } from "@/lib/matchTypes";
 
 interface MatchSetupData {
   format: Format;
-  batterHand: string;
-  batterType: BatterType;
-  bowlerType: string;
-  bowlerArm: string;
   pitchCondition: string;
 }
 
@@ -21,10 +17,6 @@ interface MatchSetupProps {
 const MatchSetup = ({ onStart }: MatchSetupProps) => {
   const [data, setData] = useState<MatchSetupData>({
     format: "t20",
-    batterHand: "right",
-    batterType: "unknown",
-    bowlerType: "fast",
-    bowlerArm: "right",
     pitchCondition: "flat",
   });
 
@@ -61,61 +53,6 @@ const MatchSetup = ({ onStart }: MatchSetupProps) => {
               <SelectItem value="dry">Dry / Turning</SelectItem>
               <SelectItem value="flat">Flat / Batting</SelectItem>
               <SelectItem value="cracked">Cracked</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label className="text-muted-foreground text-xs font-mono uppercase tracking-wider">Batter Hand</Label>
-          <Select value={data.batterHand} onValueChange={(v) => update("batterHand", v)}>
-            <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="right">Right-hand</SelectItem>
-              <SelectItem value="left">Left-hand</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-muted-foreground text-xs font-mono uppercase tracking-wider">Batter Type</Label>
-          <Select value={data.batterType} onValueChange={(v) => update("batterType", v as BatterType)}>
-            <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="unknown">Unknown</SelectItem>
-              <SelectItem value="aggressive">Aggressive</SelectItem>
-              <SelectItem value="defensive">Defensive</SelectItem>
-              <SelectItem value="balanced">Balanced</SelectItem>
-              <SelectItem value="tailender">Tail-ender</SelectItem>
-              <SelectItem value="new-to-crease">New to Crease</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label className="text-muted-foreground text-xs font-mono uppercase tracking-wider">Bowler Type</Label>
-          <Select value={data.bowlerType} onValueChange={(v) => update("bowlerType", v)}>
-            <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="fast">Fast</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="offspin">Off-spin</SelectItem>
-              <SelectItem value="legspin">Leg-spin</SelectItem>
-              <SelectItem value="leftarm-spin">Left-arm spin</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-muted-foreground text-xs font-mono uppercase tracking-wider">Bowler Arm</Label>
-          <Select value={data.bowlerArm} onValueChange={(v) => update("bowlerArm", v)}>
-            <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="right">Right-arm</SelectItem>
-              <SelectItem value="left">Left-arm</SelectItem>
             </SelectContent>
           </Select>
         </div>

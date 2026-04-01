@@ -170,7 +170,7 @@ const Index = () => {
       case "1": case "2": case "3": case "4": case "6":
         batRuns = parseInt(result); break;
       case "wicket": batRuns = 0; break;
-      case "wide": extraRuns = 1; break;
+      case "wide": extraRuns = additionalRuns || 1; break;
       case "no-ball": extraRuns = 1; batRuns = additionalRuns; break;
       case "byes": case "leg-byes": extraRuns = additionalRuns; break;
     }
